@@ -1,0 +1,25 @@
+---
+domain_name: "163.192.117.50"
+
+monitoring_ports:
+  - { port: 9090, proto: tcp, comment: "Prometheus" }
+  - { port: 3000, proto: tcp, comment: "Grafana" }
+  - { port: 3001, proto: tcp, comment: "Uptime Kuma" }
+
+prometheus_container_image: "prom/prometheus:latest"
+prometheus_container_name: prometheus
+prometheus_retention: "7d"
+
+grafana_container_image: "grafana/grafana:latest"
+grafana_container_name: grafana
+grafana_admin_user: admin
+grafana_admin_password: "lab3monitoring"
+
+nginx_exporter_container_image: "nginx/nginx-prometheus-exporter:latest"
+nginx_exporter_container_name: nginx_exporter
+
+uptime_kuma_container_image: "louislam/uptime-kuma:latest"
+uptime_kuma_container_name: uptime_kuma
+uptime_kuma_data_dir: "/var/lib/uptime-kuma"
+
+textfile_collector_dir: "/var/lib/node_exporter/textfile_collector"

@@ -1,0 +1,108 @@
+{
+  "uid": "availability",
+  "title": "Availability",
+  "tags": ["availability","uptime"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "nginx",
+      "description": "HTTP scrape target for nginx (via nginx_exporter)",
+      "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus", "type": "prometheus" },
+      "targets": [{ "expr": "up{job=\"nginx_exporter\"}", "legendFormat": "nginx" }],
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type":"value","options":{"0":{"text":"DOWN","color":"red"},"1":{"text":"UP","color":"green"}}}],
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{"color":"red","value":0},{"color":"green","value":1}] }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Prometheus",
+      "gridPos": { "x": 4, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus", "type": "prometheus" },
+      "targets": [{ "expr": "up{job=\"prometheus\"}", "legendFormat": "prometheus" }],
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type":"value","options":{"0":{"text":"DOWN","color":"red"},"1":{"text":"UP","color":"green"}}}],
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{"color":"red","value":0},{"color":"green","value":1}] }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "node_exporter",
+      "gridPos": { "x": 8, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus", "type": "prometheus" },
+      "targets": [{ "expr": "up{job=\"node_exporter\"}", "legendFormat": "node_exporter" }],
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{"type":"value","options":{"0":{"text":"DOWN","color":"red"},"1":{"text":"UP","color":"green"}}}],
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [{"color":"red","value":0},{"color":"green","value":1}] }
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Overall Targets Up",
+      "gridPos": { "x": 12, "y": 0, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus", "type": "prometheus" },
+      "targets": [{ "expr": "sum(up)", "legendFormat": "total up" }],
+      "options": { "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": { "mode": "absolute", "steps": [{"color":"red","value":0},{"color":"yellow","value":2},{"color":"green","value":3}] },
+          "color": { "mode": "thresholds" }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Service Uptime History",
+      "description": "1 = UP, 0 = DOWN. Any dip to 0 means a target was unreachable.",
+      "gridPos": { "x": 0, "y": 4, "w": 24, "h": 8 },
+      "datasource": { "uid": "prometheus", "type": "prometheus" },
+      "targets": [
+        { "expr": "up{job=\"node_exporter\"}", "legendFormat": "node_exporter" },
+        { "expr": "up{job=\"nginx_exporter\"}", "legendFormat": "nginx_exporter" },
+        { "expr": "up{job=\"prometheus\"}", "legendFormat": "prometheus" }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0, "max": 1,
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Scrape Duration (ms)",
+      "description": "How long each target takes to scrape. Slow scrapes can indicate the target is struggling.",
+      "gridPos": { "x": 0, "y": 12, "w": 24, "h": 7 },
+      "datasource": { "uid": "prometheus", "type": "prometheus" },
+      "targets": [
+        { "expr": "scrape_duration_seconds{job=\"node_exporter\"} * 1000", "legendFormat": "node_exporter" },
+        { "expr": "scrape_duration_seconds{job=\"nginx_exporter\"} * 1000", "legendFormat": "nginx_exporter" },
+        { "expr": "scrape_duration_seconds{job=\"prometheus\"} * 1000", "legendFormat": "prometheus" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "ms", "color": { "mode": "palette-classic" } } }
+    }
+  ],
+  "schemaVersion": 36
+}

@@ -1,0 +1,4 @@
+---
+- name: restart uptime_kuma
+  shell: docker restart {{ uptime_kuma_container_name }}
+  ignore_errors: true

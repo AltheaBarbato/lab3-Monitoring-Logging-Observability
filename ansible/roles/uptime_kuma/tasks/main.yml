@@ -1,0 +1,46 @@
+---
+- name: Open port 3001 in UFW for Uptime Kuma
+  shell: ufw allow 3001/tcp comment "Uptime Kuma"
+  register: ufw_result
+  changed_when: "'Rules updated' in ufw_result.stdout"
+
+- name: Allow port 3001 in iptables
+  iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_port: "3001"
+    jump: ACCEPT
+    action: insert
+  register: ipt_result
+
+- name: Save iptables rules
+  shell: netfilter-persistent save
+  when: ipt_result.changed
+
+- name: Create Uptime Kuma data directory
+  file:
+    path: "{{ uptime_kuma_data_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Pull Uptime Kuma image
+  shell: docker pull {{ uptime_kuma_container_image }}
+  register: pull_result
+  changed_when: "'Status: Downloaded newer image' in pull_result.stdout"
+
+- name: Check if Uptime Kuma container exists
+  shell: docker inspect {{ uptime_kuma_container_name }} 2>/dev/null && echo exists || echo missing
+  register: kuma_exists
+  changed_when: false
+
+- name: Run Uptime Kuma container
+  shell: >
+    docker run -d
+    --name {{ uptime_kuma_container_name }}
+    --restart unless-stopped
+    -p 3001:3001
+    -v {{ uptime_kuma_data_dir }}:/app/data
+    {{ uptime_kuma_container_image }}
+  when: kuma_exists.stdout == "missing"

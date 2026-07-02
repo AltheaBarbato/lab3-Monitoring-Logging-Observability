@@ -1,0 +1,53 @@
+---
+- name: Create textfile collector directory
+  file:
+    path: "{{ textfile_collector_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy failed login counter script
+  copy:
+    src: collect_failed_logins.sh
+    dest: /usr/local/bin/collect_failed_logins.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Schedule failed login metric collection every minute
+  cron:
+    name: collect_failed_logins
+    minute: "*/1"
+    job: "/usr/local/bin/collect_failed_logins.sh > {{ textfile_collector_dir }}/failed_logins.prom 2>/dev/null"
+    user: root
+
+- name: Run the collector once now so the metric exists immediately
+  command: /usr/local/bin/collect_failed_logins.sh
+  args:
+    creates: "{{ textfile_collector_dir }}/failed_logins.prom"
+  register: collector_run
+
+- name: Write initial metric file
+  shell: "/usr/local/bin/collect_failed_logins.sh > {{ textfile_collector_dir }}/failed_logins.prom"
+  when: collector_run.changed
+
+- name: Restart node_exporter container to pick up textfile_collector dir
+  shell: >
+    docker inspect node_exporter --format '{{ "{{" }}.Args{{ "}}" }}' 2>/dev/null | grep -q textfile ||
+    (docker stop node_exporter && docker rm node_exporter &&
+    docker run -d --name node_exporter --restart unless-stopped --network host
+    --pid host
+    -v /proc:/host/proc:ro
+    -v /sys:/host/sys:ro
+    -v /:/host/rootfs:ro
+    -v {{ textfile_collector_dir }}:/textfile_collector:ro
+    prom/node-exporter:latest
+    --path.procfs=/host/proc
+    --path.sysfs=/host/sys
+    --path.rootfs=/host/rootfs
+    --collector.textfile.directory=/textfile_collector)
+  args:
+    executable: /bin/bash
+  register: node_exporter_restart
+  changed_when: "'docker run' in node_exporter_restart.cmd | default('')"

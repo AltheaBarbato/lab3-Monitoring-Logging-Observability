@@ -1,0 +1,4 @@
+---
+- name: restart prometheus
+  shell: docker restart {{ prometheus_container_name }}
+  ignore_errors: true

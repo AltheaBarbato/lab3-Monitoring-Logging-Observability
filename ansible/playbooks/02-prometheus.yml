@@ -1,0 +1,8 @@
+---
+- name: Deploy Prometheus
+  hosts: webservers
+  become: true
+  vars_files:
+    - ../vars/main.yml
+  roles:
+    - prometheus

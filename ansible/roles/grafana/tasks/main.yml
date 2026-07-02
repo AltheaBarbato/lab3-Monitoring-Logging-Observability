@@ -1,0 +1,91 @@
+---
+- name: Create Grafana provisioning directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /etc/grafana/provisioning/datasources
+    - /etc/grafana/provisioning/dashboards
+    - /etc/grafana/provisioning/dashboards/json
+
+- name: Create Grafana data directory
+  file:
+    path: /var/lib/grafana
+    state: directory
+    owner: "472"
+    group: "472"
+    mode: "0755"
+
+- name: Set ownership on Grafana data directory to match the container's user
+  file:
+    path: /var/lib/grafana
+    owner: "472"
+    group: "472"
+    recurse: true
+
+- name: Deploy Grafana datasource provisioning
+  template:
+    src: provisioning/datasources/datasource.yml.j2
+    dest: /etc/grafana/provisioning/datasources/datasource.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy Grafana dashboard provider config
+  template:
+    src: provisioning/dashboards/dashboards.yml.j2
+    dest: /etc/grafana/provisioning/dashboards/dashboards.yml
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy infrastructure overview dashboard
+  copy:
+    src: provisioning/dashboards/json/infrastructure-overview.json
+    dest: /etc/grafana/provisioning/dashboards/json/infrastructure-overview.json
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy security events dashboard
+  copy:
+    src: provisioning/dashboards/json/security-events.json
+    dest: /etc/grafana/provisioning/dashboards/json/security-events.json
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Deploy availability dashboard
+  copy:
+    src: provisioning/dashboards/json/availability.json
+    dest: /etc/grafana/provisioning/dashboards/json/availability.json
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Pull Grafana image
+  shell: docker pull {{ grafana_container_image }}
+  register: pull_result
+  changed_when: "'Status: Downloaded newer image' in pull_result.stdout"
+
+- name: Check if Grafana container already exists
+  shell: docker inspect {{ grafana_container_name }} 2>/dev/null && echo exists || echo missing
+  register: grafana_exists
+  changed_when: false
+
+- name: Run Grafana container
+  shell: >
+    docker run -d
+    --name {{ grafana_container_name }}
+    --restart unless-stopped
+    --network host
+    -v /etc/grafana/provisioning:/etc/grafana/provisioning
+    -v /var/lib/grafana:/var/lib/grafana
+    -e GF_SECURITY_ADMIN_USER={{ grafana_admin_user }}
+    -e GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}
+    -e GF_SERVER_HTTP_PORT=3000
+    {{ grafana_container_image }}
+  when: grafana_exists.stdout == "missing"

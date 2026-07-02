@@ -1,0 +1,64 @@
+---
+- name: Create Prometheus config directory
+  file:
+    path: /etc/prometheus
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Create Prometheus data directory
+  file:
+    path: /var/lib/prometheus
+    state: directory
+    owner: "65534"
+    group: "65534"
+    mode: "0755"
+
+- name: Deploy Prometheus config
+  template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart prometheus
+
+- name: Deploy alert rules
+  template:
+    src: alert.rules.yml.j2
+    dest: /etc/prometheus/alert.rules.yml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: restart prometheus
+
+- name: Pull Prometheus image
+  shell: docker pull {{ prometheus_container_image }}
+  register: pull_result
+  changed_when: "'Status: Downloaded newer image' in pull_result.stdout"
+
+- name: Check if Prometheus container exists
+  shell: docker inspect {{ prometheus_container_name }} 2>/dev/null && echo exists || echo missing
+  register: prom_exists
+  changed_when: false
+
+- name: Remove Prometheus container if config changed (forces reload)
+  shell: docker rm -f {{ prometheus_container_name }}
+  when: prom_exists.stdout == "exists" and (prometheus_config is defined and prometheus_config.changed)
+  ignore_errors: true
+
+- name: Run Prometheus container
+  shell: >
+    docker run -d
+    --name {{ prometheus_container_name }}
+    --restart unless-stopped
+    --network host
+    -v /etc/prometheus:/etc/prometheus
+    -v /var/lib/prometheus:/prometheus
+    {{ prometheus_container_image }}
+    --config.file=/etc/prometheus/prometheus.yml
+    --storage.tsdb.path=/prometheus
+    --storage.tsdb.retention.time={{ prometheus_retention }}
+    --web.enable-lifecycle
+  when: prom_exists.stdout == "missing"
