@@ -5,7 +5,7 @@ AUTH_LOG="/var/log/auth.log"
 COUNT=0
 
 if [[ -f "$AUTH_LOG" ]]; then
-    COUNT=$(grep -c "Failed password" "$AUTH_LOG" 2>/dev/null || echo 0)
+    COUNT=$(grep "Failed password" "$AUTH_LOG" 2>/dev/null | wc -l)
 fi
 
 cat <<EOF

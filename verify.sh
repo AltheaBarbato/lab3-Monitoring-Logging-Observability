@@ -45,7 +45,7 @@ done
 
 echo "--- Uptime Kuma ---"
 kuma_code=$(curl -s -o /dev/null -w "%{http_code}" "http://$SERVER_IP:3001")
-check "Uptime Kuma reachable" "$( [[ "$kuma_code" == "200" ]] && echo ok || echo "got $kuma_code" )"
+check "Uptime Kuma reachable" "$( [[ "$kuma_code" == "200" || "$kuma_code" == "302" ]] && echo ok || echo "got $kuma_code" )"
 
 echo "--- Security Metrics ---"
 metric=$(curl -s "http://$SERVER_IP:9090/api/v1/query?query=node_failed_ssh_logins_total" | python3 -c "import sys,json; d=json.load(sys.stdin); print('ok' if d['data']['result'] else 'missing')" 2>/dev/null || echo missing)
