@@ -53,7 +53,7 @@ bash verify.sh
 | Security Events | http://163.192.117.50:3000/d/security-events | Failed SSH logins, firing alerts |
 | Availability | http://163.192.117.50:3000/d/availability | Per-service up/down status + history |
 
-Uptime Kuma is at `http://163.192.117.50:3001` — first login creates your admin account.
+Uptime Kuma is at `http://163.192.117.50:3001` — monitors nginx, Prometheus, and Grafana.
 
 ## Alerts
 
@@ -71,4 +71,4 @@ Uptime Kuma is at `http://163.192.117.50:3001` — first login creates your admi
 bash alert-demo.sh
 ```
 
-Stops node_exporter, waits for InstanceDown to fire, pauses for screenshots, then turns it back on and confirms it clears.
+Stops node_exporter on purpose, waits for InstanceDown to go from Pending to Firing, then restarts it and confirms the alert clears.
