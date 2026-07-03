@@ -11,15 +11,15 @@ For a class project this matters less, but for a real system, the difference bet
 
 ## What I'm actually monitoring
 
-**CPU, memory, disk** — standard system health. Right now CPU sits around 0.67% and memory at about 7.75% because there's no real traffic. Disk is at 11.35%, but I'm watching it since Prometheus keeps 7 days of time series data and it'll grow. Set `--storage.tsdb.retention.time=7d` in the Prometheus run command so it caps itself.
+**CPU, memory, disk** standard system health. Right now CPU sits around 0.67% and memory at about 7.75% because there's no real traffic. Disk is at 11.35%, but I'm watching it since Prometheus keeps 7 days of time series data and it'll grow. Set `--storage.tsdb.retention.time=7d` in the Prometheus run command so it caps itself.
 
-**Network** — mostly flat since nobody's hitting this server except me. Would tell you if traffic spiked or if something started exfiltrating data (unexpected outbound traffic).
+**Network** - mostly flat since nobody's hitting this server except me. Would tell you if traffic spiked or if something started exfiltrating data (unexpected outbound traffic).
 
-**NGINX request rate** — basically zero (around 0.07 req/s). In a real deployment this is how you'd tell if traffic looks normal, too low (maybe a cache is serving everything), or too high (potential DDoS or viral traffic).
+**NGINX request rate** - basically zero (around 0.07 req/s). In a real deployment this is how you'd tell if traffic looks normal, too low (maybe a cache is serving everything), or too high (potential DDoS or viral traffic).
 
-**Container status** — all five containers show `up = 1` in Prometheus which means they were all reachable on the last scrape. node_exporter exposes systemd unit states too so you can check if fail2ban is actually running.
+**Container status** - all five containers show `up = 1` in Prometheus which means they were all reachable on the last scrape. node_exporter exposes systemd unit states too so you can check if fail2ban is actually running.
 
-**Failed SSH logins** — custom metric I set up using a cron job that counts "Failed password" entries in `/var/log/auth.log`. The internet actively scans for open SSH ports and tries common credentials — this metric makes that visible instead of it happening silently.
+**Failed SSH logins** - custom metric I set up using a cron job that counts "Failed password" entries in `/var/log/auth.log`. The internet actively scans for open SSH ports and tries common credentials — this metric makes that visible instead of it happening silently.
 
 ## Monitoring limitations
 
@@ -47,7 +47,7 @@ What this doesn't cover: successful logins. If someone got in with valid credent
 
 ## Operational maintenance
 
-Prometheus data is capped at 7 days via `--storage.tsdb.retention.time=7d` so disk won't grow forever. Docker images need occasional pruning — `docker system prune` — since old image layers pile up. The unattended-upgrades package handles security patches for the OS automatically.
+Prometheus data is capped at 7 days via `--storage.tsdb.retention.time=7d` so disk won't grow forever. Docker images need occasional pruning — `docker system prune` since old image layers pile up. The unattended-upgrades package handles security patches for the OS automatically.
 
 Uptime Kuma stores its data in `/var/lib/uptime-kuma` which is mounted as a Docker volume, so it persists through container restarts. Same for Prometheus (`/var/lib/prometheus`) and Grafana (`/var/lib/grafana`).
 
