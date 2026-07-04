@@ -5,11 +5,11 @@ Same server again (`webserver01`, `163.192.117.50`). Adds Uptime Kuma, three Gra
 
 ## What's running
 
-- **Prometheus** (9090) - scrapes metrics every 15s, evaluates 5 alert rules
-- **Grafana** (3000) - three dashboards: Infrastructure Overview, Security Events, Availability
-- **Uptime Kuma** (3001) - service status/availability monitoring
-- **nginx_exporter** (9113) - nginx request rate + connection metrics
-- **node_exporter** (9100) - system metrics + failed login count via textfile collector
+- **Prometheus** (9090) scrapes metrics every 15s, evaluates 5 alert rules
+- **Grafana** (3000) three dashboards: Infrastructure Overview, Security Events, Availability
+- **Uptime Kuma** (3001) service status/availability monitoring
+- **nginx_exporter** (9113) nginx request rate + connection metrics
+- **node_exporter** (9100) system metrics + failed login count via textfile collector
 
 ## Layout
 
